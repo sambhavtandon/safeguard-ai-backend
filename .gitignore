@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+test-results/
+*.json.bak
+.env
+.env.local
+trivy-report.json
+security-npm-audit.json
+.DS_Store
+Thumbs.db
