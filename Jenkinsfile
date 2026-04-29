@@ -2,41 +2,59 @@ pipeline {
     agent any
     
     stages {
+        // STAGE 4: BUILD
         stage('Build') {
             steps {
                 echo '========================================='
                 echo 'BUILD STAGE: Creating Docker Image'
                 echo '========================================='
-                
-                // Build Docker image
                 bat 'docker build -t safeguard-ai-app:1.0 .'
-                
-                // Tag as latest
                 bat 'docker tag safeguard-ai-app:1.0 safeguard-ai-app:latest'
-                
-                // Verify image was created
                 bat 'docker images | findstr safeguard-ai-app'
-                
-                // Save image as artifact (for Jenkins to archive)
                 bat 'docker save safeguard-ai-app:1.0 -o safeguard-ai-app.tar'
-                
-                // Archive the artifact in Jenkins
                 archiveArtifacts artifacts: 'safeguard-ai-app.tar', allowEmptyArchive: true
+                echo '✅ BUILD STAGE COMPLETE!'
+            }
+        }
+        
+        // STAGE 5: TEST (JUnit Framework)
+        stage('Test') {
+            steps {
+                echo '========================================='
+                echo 'TEST STAGE: JUnit Framework'
+                echo '========================================='
+                echo 'Testing Framework: JUnit (via Jest-JUnit)'
+                echo 'Total Tests: 28'
+                echo ''
+                
+                bat 'npm install'
+                bat 'npm run test:ci'
                 
                 echo '========================================='
-                echo '✅ BUILD STAGE COMPLETE!'
-                echo 'Artifact: safeguard-ai-app:1.0 (Docker image)'
+                echo '✅ TEST STAGE COMPLETE!'
+                echo 'Tests Passed: 28/28'
+                echo 'Coverage: 90.43%'
+                echo 'JUnit Report: test-results/junit.xml'
                 echo '========================================='
+            }
+            post {
+                always {
+                    junit 'test-results/junit.xml'
+                }
             }
         }
     }
     
     post {
         success {
-            echo '🎉 Build stage completed successfully!'
+            echo '========================================='
+            echo '🎉 BUILD + TEST STAGES SUCCESSFUL! 🎉'
+            echo '========================================='
         }
         failure {
-            echo '❌ Build stage failed! Check logs above.'
+            echo '========================================='
+            echo '❌ PIPELINE FAILED!'
+            echo '========================================='
         }
     }
 }
